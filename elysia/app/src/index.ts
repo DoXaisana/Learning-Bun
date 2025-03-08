@@ -1,7 +1,12 @@
 import { Elysia } from "elysia";
 import { jwt } from "@elysiajs/jwt";
+import { staticPlugin } from "@elysiajs/static";
 
 const app = new Elysia()
+  .use(staticPlugin({
+    assets: './uploads',
+    prefix: '/uploads',
+  }))
   .use(jwt({
     name: 'jwt',
     secret: "9hewhf92j3rq09ujdsffsdu21dsfudsf"
@@ -139,6 +144,14 @@ const app = new Elysia()
     Bun.write('uploads/' + file.name , file)
     
     return { message: 'File uploaded successfully' };
+  })
+  .get('/write-file', () => {
+    Bun.write('uploads/test.txt', 'Hello World');
+    return { message: 'File written successfully' };
+  })
+  .get('/read-file', () => {
+    const file = Bun.file('uploads/test.txt');
+    return file.text();
   })
   .listen(3000);
 
