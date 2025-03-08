@@ -130,12 +130,15 @@ const app = new Elysia()
     const { username } = await jwt.verify(token);
     return { message: `Hello ${username}` };
   })
-  .post('/uploadfile', ({ body }: {
+  .post('/upload-file', ({ body }: {
     body: {
       file: File,
     }
   }) => {
-
+    const file = body.file;
+    Bun.write('uploads/' + file.name , file)
+    
+    return { message: 'File uploaded successfully' };
   })
   .listen(3000);
 
