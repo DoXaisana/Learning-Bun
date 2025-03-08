@@ -1,6 +1,11 @@
 import { Elysia } from "elysia";
+import { jwt } from "@elysiajs/jwt";
 
 const app = new Elysia()
+  .use(jwt({
+    name: 'jwt',
+    secret: "9hewhf92j3rq09ujdsffsdu21dsfudsf"
+  }))
   .get("/", () => "Hello Elysia Firmware Haahaha")
   .get("/hello", () => {
     return {
@@ -84,6 +89,53 @@ const app = new Elysia()
   }) => {
     const id = params.id;
     return { message: `Deleted Customer ID: ${id}`}
+  })
+  .post('/user/signin', async ({ jwt, set, body }: {
+    jwt: any,
+    set: any,
+    body: {
+      username: string,
+      password: string,
+    }
+  }) => {
+    try{
+    
+    const { username, password } = body;
+    if (username !== 'admin' || password !== 'admin') {
+      set.status = 401; // Unauthorized
+      return { error: 'Invalid username or password' };
+    }
+
+    const token = await jwt.sign({ username }, {
+      expiresIn: '1d',
+    });
+    return { token };} catch {
+      set.status = 500;
+      return { error: 'Internal Server Error' };
+    }
+  })
+  .get('/user/profile', async ({ jwt, cookie: { auth }}:{
+    jwt: any,
+    cookie: any
+  }) => {
+    const { username } = await jwt.verify(auth.value);
+    return { message : `Hello ${username}` };
+  })
+  .get('/user/profileFromToken', async ({ jwt, request }: {
+    jwt: any,
+    request: Request,
+  }) => {
+    const auth = request.headers.get('Authorization');
+    const token = auth?.split(' ')[1];
+    const { username } = await jwt.verify(token);
+    return { message: `Hello ${username}` };
+  })
+  .post('/uploadfile', ({ body }: {
+    body: {
+      file: File,
+    }
+  }) => {
+
   })
   .listen(3000);
 
